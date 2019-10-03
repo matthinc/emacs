@@ -1,0 +1,620 @@
+#+TITLE: Emacs Config
+#+PROPERTY: header-args:emacs-lisp    :tangle "~/.emacs"
+
+* Requirements
+  - =fzf=
+  - =pip install proselint=
+  - =silversearcher-ag=
+
+* Emacs Native Settings
+#+BEGIN_SRC emacs-lisp
+;;; my-emacs-config --- My emacs configuration
+;;; Commentary:
+;;; Code:
+
+#+END_SRC
+** Don't show the startup screen
+#+BEGIN_SRC emacs-lisp
+  (setq inhibit-startup-screen t)
+#+END_SRC
+** Scrolling speed
+#+BEGIN_SRC emacs-lisp
+  (setq mouse-wheel-scroll-amount '(3 ((shift) . 1) ((control) . nil)))
+  (setq mouse-wheel-progressive-speed nil)
+#+END_SRC
+** Disable toolbar
+#+BEGIN_SRC emacs-lisp
+  (tool-bar-mode -1)
+#+END_SRC
+** Make =yes-or-no= Promts shorter
+#+BEGIN_SRC emacs-lisp
+  (defalias 'yes-or-no-p 'y-or-n-p)
+#+END_SRC
+** Backup and auto-save in one place
+#+BEGIN_SRC emacs-lisp
+  (setq backup-directory-alist '(("" . "~/.emacs.d/backup")))
+  (setq auto-save-file-name-transforms
+	`((".*" "~/.emacs.d/auto-save/" t)))
+#+END_SRC
+** Disable Lockfiles
+#+BEGIN_SRC emacs-lisp
+  (setq create-lockfiles nil)
+#+END_SRC
+** Fix emacs TLS Issue
+#+BEGIN_SRC emacs-lisp
+  (defvar gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3")
+#+END_SRC
+** mepla package archive
+#+BEGIN_SRC emacs-lisp
+  (require 'package)
+  (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
+  (setq package-enable-at-startup nil)
+  (package-initialize)
+#+END_SRC
+** Bootstrap use-package
+If =use-package= is not installed, install it.
+#+BEGIN_SRC emacs-lisp
+  (unless (package-installed-p 'use-package)
+    (package-refresh-contents)
+    (package-install 'use-package))
+#+END_SRC
+** Set custom settings to load in own file
+This stops emacs adding customised settings to =init.el=. I try to avoid
+using customize anyway, preferring programmatic control of
+variables. Creating it as a temporary file effectively disables it
+(i.e. any changes are session local).
+#+BEGIN_SRC emacs-lisp
+  (setq custom-file (make-temp-file "emacs-custom"))
+#+END_SRC
+** Better dired shortcuts
+#+BEGIN_SRC emacs-lisp
+  (use-package dired
+    :ensure nil
+    :config
+    (define-key dired-mode-map "b" 'dired-up-directory)
+    ;; open files in same window when clicking
+    (define-key dired-mode-map [mouse-2] 'dired-mouse-find-file)
+    )
+#+END_SRC
+* Window Management
+** Easy window Switching with =ace-window=
+#+BEGIN_SRC emacs-lisp
+  (use-package ace-window
+    :bind
+    ("M-o" . 'ace-window)
+    :ensure t)
+#+END_SRC
+** Do not ask before killing a buffer
+#+BEGIN_SRC emacs-lisp
+  (global-set-key [remap kill-buffer] #'kill-this-buffer)
+#+END_SRC
+** Multiple workspaces
+#+BEGIN_SRC emacs-lisp
+  (use-package eyebrowse
+    :bind
+    ("<f5>" . eyebrowse-switch-to-window-config-1)
+    ("<f6>" . eyebrowse-switch-to-window-config-2)
+    ("<f7>" . eyebrowse-switch-to-window-config-3)
+    ("<f8>" . eyebrowse-switch-to-window-config-4)
+    :hook
+    (after-init . eyebrowse-mode)
+    :custom
+    (eyebrowse-new-workspace t))
+#+END_SRC
+** Navigate previous next buffer
+#+BEGIN_SRC emacs-lisp
+  (global-set-key (kbd "C-S-p") 'previous-buffer)
+  (global-set-key (kbd "C-S-n") 'next-buffer)
+  (global-set-key (kbd "<mouse-8>") 'previous-buffer)
+  (global-set-key (kbd "<mouse-9>") 'next-buffer)
+#+END_SRC
+* Minibuffer and completion
+** Fast vertical completion with =ivy=
+Enable fuzzy searching instead of the default regex.
+#+BEGIN_SRC emacs-lisp
+  (use-package ivy
+    :config
+    (ivy-mode)
+    (setq ivy-re-builders-alist
+    '((t . ivy--regex-fuzzy)))
+    :bind
+    ("C-S-b" . 'ivy-switch-buffer)
+    :ensure t)
+#+END_SRC
+** Smart command completion
+smart =M-x= suggests =M-x= commands based on recency and frequency. I
+don't tend to use it directly but =counsel= uses it to order
+suggestions.
+#+BEGIN_SRC 
+  (use-package smex
+    :ensure t)
+#+END_SRC
+** =counsel= enhances =ivy= commands
+=counsel= is a collection of =ivy= enhanced versions of common Emacs
+commands.
+#+BEGIN_SRC emacs-lisp
+  (use-package counsel
+    :ensure t
+    :config
+    (setq ivy-initial-inputs-alist nil)
+    :bind (("M-x" . counsel-M-x)))
+#+END_SRC
+* Editing
+** Commenting uncommenting
+Comment or uncomment the current line or region
+#+BEGIN_SRC emacs-lisp
+  (defun comment-or-uncomment-region-or-line ()
+      "Comments or uncomments the region or the current line if there's no active region."
+      (interactive)
+      (let (beg end)
+	  (if (region-active-p)
+	      (setq beg (region-beginning) end (region-end))
+	      (setq beg (line-beginning-position) end (line-end-position)))
+	  (comment-or-uncomment-region beg end)))
+  (global-set-key (kbd "M-;") 'comment-or-uncomment-region-or-line)
+#+END_SRC
+** Multiple cursors
+#+BEGIN_SRC emacs-lisp
+  (require 'multiple-cursors)
+  (global-set-key (kbd "C->") 'mc/mark-next-like-this)
+  (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+  (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+#+END_SRC
+** Variable Renaming
+#+BEGIN_SRC emacs-lisp
+  (require 'iedit)
+#+END_SRC
+** Smart Movement
+=crux= has useful functions extracted from Emacs Prelude. Set =C-a= to
+move to the first non-whitespace character on a line, and then to
+toggle between that and the beginning of the line.
+#+BEGIN_SRC emacs-lisp
+  (use-package crux
+     :ensure t
+     :bind (
+	    ("C-a" . crux-move-beginning-of-line)
+	    ("C-k" . crux-smart-kill-line)
+	    )
+     )
+#+END_SRC
+** Parentheses balancing
+#+BEGIN_SRC emacs-lisp
+  (use-package smartparens
+    :ensure t
+    :diminish smartparens-mode
+    :config
+    (add-hook 'prog-mode-hook 'smartparens-mode))
+#+END_SRC
+* Project Management
+** Projectile
+Projectile handles folders which are in version control.
+#+BEGIN_SRC emacs-lisp
+  (use-package projectile
+    :ensure t
+    :config
+    (projectile-mode)
+    (setq projectile-switch-project-action #'projectile-dired)
+    )
+#+END_SRC
+Tell projectile to integrate with =ivy= for completion.
+#+BEGIN_SRC emacs-lisp
+  (setq projectile-completion-system 'ivy)
+#+END_SRC
+Add some extra completion options via integration with =counsel=. In
+particular this enables =C-c p SPC= for smart buffer / file search,
+and =C-c p s s= for search via =ag=.
+#+BEGIN_SRC emacs-lisp
+  (use-package counsel-projectile
+    :ensure t
+    :config
+    (add-hook 'after-init-hook 'counsel-projectile-mode))
+#+END_SRC
+** Fuzzy search
+# =fzf= is a fuzzy file finder which is very quick.
+# #+BEGIN_SRC emacs-lisp
+#   (use-package fzf
+#     :ensure t)
+# #+END_SRC
+** Git
+*** Magit
+#+BEGIN_SRC emacs-lisp
+  (use-package magit
+    :ensure t
+    :bind ("C-x g" . magit-status))
+#+END_SRC
+*** Git Gutter
+#+BEGIN_SRC emacs-lisp
+  (use-package git-gutter
+    :ensure t
+    :config
+    (global-git-gutter-mode 't)
+    :diminish git-gutter-mode)
+#+END_SRC
+** Treemacs
+Base installation
+#+BEGIN_SRC emacs-lisp
+(use-package treemacs
+  :ensure t
+  :defer t
+  :init
+  (with-eval-after-load 'winum
+    (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
+  :config
+  (progn
+    (setq treemacs-collapse-dirs                 (if treemacs-python-executable 3 0)
+          treemacs-deferred-git-apply-delay      0.5
+          treemacs-display-in-side-window        t
+          treemacs-eldoc-display                 t
+          treemacs-file-event-delay              5000
+          treemacs-file-follow-delay             0.2
+          treemacs-follow-after-init             t
+          treemacs-git-command-pipe              ""
+          treemacs-goto-tag-strategy             'refetch-index
+          treemacs-indentation                   1
+          treemacs-indentation-string            " "
+          treemacs-is-never-other-window         nil
+          treemacs-max-git-entries               5000
+          treemacs-missing-project-action        'ask
+          treemacs-no-png-images                 nil
+          treemacs-no-delete-other-windows       t
+          treemacs-project-follow-cleanup        nil
+          treemacs-persist-file                  (expand-file-name ".cache/treemacs-persist" user-emacs-directory)
+          treemacs-position                      'left
+          treemacs-recenter-distance             0.1
+          treemacs-recenter-after-file-follow    nil
+          treemacs-recenter-after-tag-follow     nil
+          treemacs-recenter-after-project-jump   'always
+          treemacs-recenter-after-project-expand 'on-distance
+          treemacs-show-cursor                   nil
+          treemacs-show-hidden-files             t
+          treemacs-silent-filewatch              nil
+          treemacs-silent-refresh                nil
+          treemacs-sorting                       'alphabetic-desc
+          treemacs-space-between-root-nodes      t
+          treemacs-tag-follow-cleanup            t
+          treemacs-tag-follow-delay              1.5
+          treemacs-width                         35)
+
+    ;; The default width and height of the icons is 22 pixels. If you are
+    ;; using a Hi-DPI display, uncomment this to double the icon size.
+    (treemacs-resize-icons 12)
+
+    (treemacs-follow-mode t)
+    (treemacs-filewatch-mode t)
+    (treemacs-fringe-indicator-mode t)
+    (pcase (cons (not (null (executable-find "git")))
+                 (not (null treemacs-python-executable)))
+      (`(t . t)
+       (treemacs-git-mode 'deferred))
+      (`(t . _)
+       (treemacs-git-mode 'simple))))
+  :bind
+  (:map global-map
+        ("M-0"       . treemacs-select-window)
+        ("C-x t t"   . treemacs)))
+#+END_SRC
+*** Projectile integration
+#+BEGIN_SRC emacs-lisp
+(use-package treemacs-projectile
+  :after treemacs projectile
+  :ensure t)
+#+END_SRC
+*** Magit integration
+#+BEGIN_SRC emacs-lisp
+(use-package treemacs-magit
+  :after treemacs magit
+  :ensure t)
+#+END_SRC
+* Checking and Completion
+** Flycheck
+#+BEGIN_SRC emacs-lisp
+  (use-package flycheck
+    :ensure t
+    :config
+    (add-hook 'after-init-hook 'global-flycheck-mode)
+    ;; (add-hook 'flycheck-mode-hook 'jc/use-eslint-from-node-modules)
+    (add-to-list 'flycheck-checkers 'proselint)
+    (setq-default flycheck-highlighting-mode 'lines)
+    ;; Define fringe indicator / warning levels
+    (define-fringe-bitmap 'flycheck-fringe-bitmap-ball
+      (vector #b00000000
+              #b00000000
+              #b00000000
+              #b00000000
+              #b00000000
+              #b00000000
+              #b00000000
+              #b00011100
+              #b00111110
+              #b00111110
+              #b00111110
+              #b00011100
+              #b00000000
+              #b00000000
+              #b00000000
+              #b00000000
+              #b00000000))
+    (flycheck-define-error-level 'error
+      :severity 2
+      :overlay-category 'flycheck-error-overlay
+      :fringe-bitmap 'flycheck-fringe-bitmap-ball
+      :fringe-face 'flycheck-fringe-error)
+    (flycheck-define-error-level 'warning
+      :severity 1
+      :overlay-category 'flycheck-warning-overlay
+      :fringe-bitmap 'flycheck-fringe-bitmap-ball
+      :fringe-face 'flycheck-fringe-warning)
+    (flycheck-define-error-level 'info
+      :severity 0
+      :overlay-category 'flycheck-info-overlay
+      :fringe-bitmap 'flycheck-fringe-bitmap-ball
+      :fringe-face 'flycheck-fringe-info))
+#+END_SRC
+Proselint is a syntax checker for English language. This defines a
+custom checker which will run in texty modes. Proselint is an external
+program, install it with =pip install proselint= for this to work.
+
+#+BEGIN_SRC emacs-lisp
+  (flycheck-define-checker proselint
+    "A linter for prose."
+    :command ("proselint" source-inplace)
+    :error-patterns
+    ((warning line-start (file-name) ":" line ":" column ": "
+              (id (one-or-more (not (any " "))))
+              (message (one-or-more not-newline)
+                       (zero-or-more "\n" (any " ") (one-or-more not-newline)))
+              line-end))
+    :modes (text-mode markdown-mode gfm-mode org-mode))
+#+END_SRC
+** Autocompletion with company
+#+BEGIN_SRC emacs-lisp
+  (use-package company
+    :ensure t
+    :diminish
+    :bind
+    (:map company-active-map
+	  ("RET" . nil)
+	  ([return] . nil)
+	  ("TAB" . company-complete-selection)
+	  ([tab] . company-complete-selection))
+    :custom
+    ;; do not downcase suggestions
+    (company-dabbrev-downcase nil)
+    (company-idle-delay .2)
+    (company-minimum-prefix-length 1)
+    (company-require-match nil)
+    (company-tooltip-align-annotations t)
+    :config
+    (add-hook 'after-init-hook 'global-company-mode)
+
+    (use-package company-irony
+      :ensure t
+      :config
+      (add-to-list 'company-backends 'company-irony))
+
+    (use-package company-go
+      :ensure t
+      :config
+      (add-to-list 'company-backends 'company-go))
+
+    (use-package company-anaconda
+      :ensure t
+      :config
+      (add-to-list 'company-backends 'company-anaconda)))
+#+END_SRC
+* Languages and Major Modes
+** Javascript
+Indent by 2 spaces.
+#+BEGIN_SRC emacs-lisp
+  (setq-default js-indent-level 2)
+#+END_SRC
+** Web mode
+Web mode handels html/css/js.
+#+BEGIN_SRC emacs-lisp
+  (use-package web-mode
+    :ensure t
+    :mode ("\\.html\\'")
+    :config
+    (setq web-mode-markup-indent-offset 2))
+#+END_SRC
+** Markdown
+#+BEGIN_SRC emacs-lisp
+  (use-package markdown-mode
+    :ensure t
+    :commands (markdown-mode gfm-mode)
+    :mode (("README\\.md\\'" . gfm-mode)
+           ("\\.md\\'" . markdown-mode)
+           ("\\.markdown\\'" . markdown-mode))
+    :init (setq markdown-command "multimarkdown"))
+#+END_SRC
+** Org-Mode
+Move subtree shortcuts
+#+BEGIN_SRC emacs-lisp
+  (use-package org
+    :mode (("\\.org$" . org-mode))
+    :bind (:map org-mode-map
+    ("C-S-P" . 'org-move-subtree-up)
+    ("C-S-N" . 'org-move-subtree-down))
+  )
+#+END_SRC
+Appearance improvements
+#+BEGIN_SRC emacs-lisp
+  (use-package org-bullets
+    :ensure t
+    :config
+    (defvar org-bullets-bullet-list '("∙"))
+    (add-hook 'org-mode-hook 'org-bullets-mode))
+#+END_SRC
+** Dockerfile
+#+BEGIN_SRC emacs-lisp
+  (use-package dockerfile-mode :mode "Dockerfile\\'")
+#+END_SRC
+* Hydras
+** General Hydra
+#+BEGIN_SRC emacs-lisp
+  (defhydra hydra-main (:color teal :hint nil)
+    "
+	 Main Hydra
+
+     Projects              Version control        On-the-fly
+    ------------------------------------------------------------------------------------------
+    _p_: projectile        _m_: magit             _f_: flycheck
+
+    "
+    ("<ESC>" nil "quit")
+    ("p"   hydra-projectile/body)
+    ("f"   hydra-flycheck/body)
+    ("m"   hydra-magit/body)
+    ("q"   nil "cancel" :color blue))
+
+  (global-set-key (kbd "<f4>") 'hydra-main/body)
+#+END_SRC
+** Magit
+#+BEGIN_SRC emacs-lisp
+  (defhydra hydra-magit (:color teal :hint nil)
+    "
+	Magit
+
+   Status/Info      Remote          Operations
+  ------------------------------------------------------------------------------------------
+  _s_: Status      _f_: Pull       _c_: commit
+  _l_: Log all     _p_: Push
+  _d_: Diff
+  _t_: timeline
+  "
+    ("<ESC>" nil "quit")
+    ("f" magit-pull)
+    ("p" magit-push)
+    ("c" magit-commit)
+    ("d" magit-diff)
+    ("l" magit-log-all)
+    ("s" magit-status)
+    ("t" git-timeline)
+    ("q"   nil "cancel" :color blue))
+#+END_SRC
+** Flycheck
+#+BEGIN_SRC emacs-lisp
+  (defhydra hydra-flycheck (:color blue)
+    "
+  ^
+  ^Flycheck^          ^Errors^            ^Checker^
+  ^────────^──────────^──────^────────────^───────^───────────
+  _q_ quit            _<_ previous        _?_ describe
+  _m_ manual          _>_ next            _d_ disable
+  _v_ verify setup    _f_ check           _s_ select
+  ^^                  _l_ list            ^^
+  ^^                  ^^                  ^^
+  "
+    ("q" nil)
+    ("<" flycheck-previous-error :color pink)
+    (">" flycheck-next-error :color pink)
+    ("?" flycheck-describe-checker)
+    ("d" flycheck-disable-checker)
+    ("f" flycheck-buffer)
+    ("l" flycheck-list-errors)
+    ("m" flycheck-manual)
+    ("s" flycheck-select-checker)
+    ("v" flycheck-verify-setup))
+#+END_SRC
+** Projectile
+#+BEGIN_SRC emacs-lisp
+  (defhydra hydra-projectile (:color teal
+			      :hint nil)
+    "
+       PROJECTILE: %(projectile-project-root)
+
+       Find File            Search/Tags          Buffers                Cache
+  ------------------------------------------------------------------------------------------
+  _s-f_: file            _a_: ag                _i_: Ibuffer           _c_: cache clear
+   _ff_: file dwim       _g_: update gtags      _b_: switch to buffer  _x_: remove known project
+   _fd_: file curr dir   _o_: multi-occur     _s-k_: Kill all buffers  _X_: cleanup non-existing
+    _r_: recent file                                               ^^^^_z_: cache current
+    _d_: dir
+    _s_: switch pj
+
+  "
+    ("a"   projectile-ag)
+    ("b"   projectile-switch-to-buffer)
+    ("c"   projectile-invalidate-cache)
+    ("d"   projectile-find-dir)
+    ("s-f" projectile-find-file)
+    ("ff"  projectile-find-file-dwim)
+    ("fd"  projectile-find-file-in-directory)
+    ("g"   ggtags-update-tags)
+    ("s-g" ggtags-update-tags)
+    ("i"   projectile-ibuffer)
+    ("K"   projectile-kill-buffers)
+    ("s-k" projectile-kill-buffers)
+    ("m"   projectile-multi-occur)
+    ("o"   projectile-multi-occur)
+    ("s-p" projectile-switch-project "switch project")
+    ("p"   projectile-switch-project)
+    ("s"   projectile-switch-project)
+    ("r"   projectile-recentf)
+    ("x"   projectile-remove-known-project)
+    ("X"   projectile-cleanup-known-projects)
+    ("z"   projectile-cache-current-file)
+    ("`"   hydra-projectile-other-window/body "other window")
+    ("q"   nil "cancel" :color blue))
+#+END_SRC
+** Dired
+#+BEGIN_SRC emacs-lisp
+  (defhydra hydra-dired (:hint nil :color pink)
+    "
+  _+_ mkdir          _v_iew           _m_ark             _(_ details        _i_nsert-subdir    wdired
+  _C_opy             _O_ view other   _U_nmark all       _)_ omit-mode      _$_ hide-subdir    C-x C-q : edit
+  _D_elete           _o_pen other     _u_nmark           _l_ redisplay      _w_ kill-subdir    C-c C-c : commit
+  _R_ename           _M_ chmod        _t_oggle           _g_ revert buf     _e_ ediff          C-c ESC : abort
+  _Y_ rel symlink    _G_ chgrp        _E_xtension mark   _s_ort             _=_ pdiff
+  _S_ymlink          ^ ^              _F_ind marked      _._ toggle hydra   \\ flyspell
+  _r_sync            ^ ^              ^ ^                ^ ^                _?_ summary
+  _z_ compress-file  _A_ find regexp
+  _Z_ compress       _Q_ repl regexp
+
+  T - tag prefix
+  "
+    ("\\" dired-do-ispell)
+    ("(" dired-hide-details-mode)
+    (")" dired-omit-mode)
+    ("+" dired-create-directory)
+    ("=" diredp-ediff)         ;; smart diff
+    ("?" dired-summary)
+    ("$" diredp-hide-subdir-nomove)
+    ("A" dired-do-find-regexp)
+    ("C" dired-do-copy)        ;; Copy all marked files
+    ("D" dired-do-delete)
+    ("E" dired-mark-extension)
+    ("e" dired-ediff-files)
+    ("F" dired-do-find-marked-files)
+    ("G" dired-do-chgrp)
+    ("g" revert-buffer)        ;; read all directories again (refresh)
+    ("i" dired-maybe-insert-subdir)
+    ("l" dired-do-redisplay)   ;; relist the marked or singel directory
+    ("M" dired-do-chmod)
+    ("m" dired-mark)
+    ("O" dired-display-file)
+    ("o" dired-find-file-other-window)
+    ("Q" dired-do-find-regexp-and-replace)
+    ("R" dired-do-rename)
+    ("r" dired-do-rsynch)
+    ("S" dired-do-symlink)
+    ("s" dired-sort-toggle-or-edit)
+    ("t" dired-toggle-marks)
+    ("U" dired-unmark-all-marks)
+    ("u" dired-unmark)
+    ("v" dired-view-file)      ;; q to exit, s to search, = gets line #
+    ("w" dired-kill-subdir)
+    ("Y" dired-do-relsymlink)
+    ("z" diredp-compress-this-file)
+    ("Z" dired-do-compress)
+    ("q" nil)
+    ("." nil :color blue))
+
+  (define-key dired-mode-map "." 'hydra-dired/body)
+#+END_SRC
+* Footer
+#+BEGIN_SRC emacs-lisp
+
+;;; .emacs ends here
+
+#+END_SRC
