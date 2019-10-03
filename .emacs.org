@@ -200,6 +200,7 @@ Projectile handles folders which are in version control.
     :config
     (projectile-mode)
     (setq projectile-switch-project-action #'projectile-dired)
+    (setq projectile-project-search-path '("~/projects"))
     )
 #+END_SRC
 Tell projectile to integrate with =ivy= for completion.
@@ -535,14 +536,13 @@ Appearance improvements
    _ff_: file dwim       _g_: update gtags      _b_: switch to buffer  _x_: remove known project
    _fd_: file curr dir   _o_: multi-occur     _s-k_: Kill all buffers  _X_: cleanup non-existing
     _r_: recent file                                               ^^^^_z_: cache current
-    _d_: dir
-    _s_: switch pj
+    _s_: switch pj                                                 ^^^^_d_: discover projecs
 
   "
     ("a"   projectile-ag)
     ("b"   projectile-switch-to-buffer)
     ("c"   projectile-invalidate-cache)
-    ("d"   projectile-find-dir)
+    ("d"   projectile-discover-projects-in-search-path)
     ("s-f" projectile-find-file)
     ("ff"  projectile-find-file-dwim)
     ("fd"  projectile-find-file-in-directory)
