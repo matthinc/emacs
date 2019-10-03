@@ -91,6 +91,7 @@ variables. Creating it as a temporary file effectively disables it
 ** Multiple workspaces
 #+BEGIN_SRC emacs-lisp
   (use-package eyebrowse
+    :ensure t
     :bind
     ("<f5>" . eyebrowse-switch-to-window-config-1)
     ("<f6>" . eyebrowse-switch-to-window-config-2)
