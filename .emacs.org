@@ -155,10 +155,13 @@ Comment or uncomment the current line or region
 #+END_SRC
 ** Multiple cursors
 #+BEGIN_SRC emacs-lisp
-  (require 'multiple-cursors)
-  (global-set-key (kbd "C->") 'mc/mark-next-like-this)
-  (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
-  (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+  (use-package multiple-cursors
+    :ensure t
+    :bind
+    ("C->" . 'mc/mark-next-like-this)
+    ("C-<" . 'mc/mark-previous-like-this)
+    ("C-c C-<" . 'mc/mark-all-like-this)
+    )
 #+END_SRC
 ** Variable Renaming
 #+BEGIN_SRC emacs-lisp
@@ -371,6 +374,8 @@ program, install it with =pip install proselint= for this to work.
   (use-package company
     :ensure t
     :diminish
+    :init
+    (global-company-mode)
     :bind
     (:map company-active-map
 	  ("RET" . nil)
@@ -385,8 +390,6 @@ program, install it with =pip install proselint= for this to work.
     (company-require-match nil)
     (company-tooltip-align-annotations t)
     :config
-    (add-hook 'after-init-hook 'global-company-mode)
-
     (use-package company-irony
       :ensure t
       :config
