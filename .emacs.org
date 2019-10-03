@@ -165,7 +165,9 @@ Comment or uncomment the current line or region
 #+END_SRC
 ** Variable Renaming
 #+BEGIN_SRC emacs-lisp
-  (require 'iedit)
+  (use-package iedit
+    :ensure t
+    )
 #+END_SRC
 ** Smart Movement
 =crux= has useful functions extracted from Emacs Prelude. Set =C-a= to
