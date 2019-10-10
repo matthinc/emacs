@@ -41,7 +41,7 @@
   (setq create-lockfiles nil)
 #+END_SRC
 ** Fix emacs TLS Issue
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle (when (version< emacs-version "26.3") "yes")
   (defvar gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3")
 #+END_SRC
 ** mepla package archive
@@ -75,6 +75,10 @@ variables. Creating it as a temporary file effectively disables it
     ;; open files in same window when clicking
     (define-key dired-mode-map [mouse-2] 'dired-mouse-find-file)
     )
+#+END_SRC
+** Disable tabs
+#+BEGIN_SRC emacs-lisp
+  (setq-default indent-tabs-mode nil)
 #+END_SRC
 * Window Management
 ** Easy window Switching with =ace-window=
@@ -185,11 +189,39 @@ toggle between that and the beginning of the line.
 #+END_SRC
 ** Parentheses balancing
 #+BEGIN_SRC emacs-lisp
-  (use-package smartparens
-    :ensure t
-    :diminish smartparens-mode
-    :config
-    (add-hook 'prog-mode-hook 'smartparens-mode))
+    (use-package smartparens
+      :ensure t
+      :diminish smartparens-mode
+      :config
+      (add-hook 'prog-mode-hook 'smartparens-mode)
+      ;; https://github.com/Fuco1/smartparens/issues/80#issuecomment-393254091
+      (defun radian-enter-and-indent-sexp (&rest _ignored)
+	"Insert an extra newline after point, and reindent."
+	(newline)
+	(indent-according-to-mode)
+	(forward-line -1)
+	(indent-according-to-mode))
+
+      (dolist (mode '(c-mode c++-mode css-mode objc-mode java-mode
+			     js2-mode json-mode
+			     python-mode sh-mode web-mode))
+	(sp-local-pair mode "{" nil :post-handlers
+		       '((radian-enter-and-indent-sexp "RET")
+			 (radian-enter-and-indent-sexp "<return>"))))
+
+      (dolist (mode '(js2-mode json-mode python-mode web-mode))
+	(sp-local-pair mode "[" nil :post-handlers
+		       '((radian-enter-and-indent-sexp "RET")
+			 (radian-enter-and-indent-sexp "<return>"))))
+
+      (dolist (mode '(python-mode))
+	(sp-local-pair mode "(" nil :post-handlers
+		       '((radian-enter-and-indent-sexp "RET")
+			 (radian-enter-and-indent-sexp "<return>")))
+	(sp-local-pair mode "\"\"\"" "\"\"\"" :post-handlers
+		       '((radian-enter-and-indent-sexp "RET")
+			 (radian-enter-and-indent-sexp "<return>"))))
+  )
 #+END_SRC
 * Project Management
 ** Projectile
@@ -322,6 +354,10 @@ Base installation
     ;; (add-hook 'flycheck-mode-hook 'jc/use-eslint-from-node-modules)
     (add-to-list 'flycheck-checkers 'proselint)
     (setq-default flycheck-highlighting-mode 'lines)
+    (setq flycheck-python-pylint-executable "python3")
+    (setq flycheck-python-pycompile-executable "python3")
+    (setq flycheck-python-flake8-executable "python3")	    
+    (setq flycheck-pylintrc "~/pylintrc")
     ;; Define fringe indicator / warning levels
     (define-fringe-bitmap 'flycheck-fringe-bitmap-ball
       (vector #b00000000
@@ -373,6 +409,60 @@ program, install it with =pip install proselint= for this to work.
               line-end))
     :modes (text-mode markdown-mode gfm-mode org-mode))
 #+END_SRC
+** More beautiful company
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package all-the-icons
+  :ensure t)
+  (use-package company-box
+    :defer    t
+    :straight t
+    :after (all-the-icons company)
+    :init
+    (setq company-box-icons-alist 'company-box-icons-all-the-icons)
+    :ghook 'company-mode-hook
+    :config
+    (setq company-box-backends-colors '((company-lsp      . "#e0f9b5")
+                                        (company-elisp    . "#e0f9b5")
+                                        (company-files    . "#ffffc2")
+                                        (company-keywords . "#ffa5a5")
+                                        (company-capf     . "#bfcfff")
+                                        (company-dabbrev  . "#bfcfff")))
+    (setq company-box-icons-unknown (concat (all-the-icons-material "find_in_page") " "))
+    (setq company-box-icons-elisp
+          (list
+           (concat (all-the-icons-faicon "tag") " ")
+           (concat (all-the-icons-faicon "cog") " ")
+           (concat (all-the-icons-faicon "cube") " ")
+           (concat (all-the-icons-material "color_lens") " ")))
+    (setq company-box-icons-yasnippet (concat (all-the-icons-faicon "bookmark") " "))
+    (setq company-box-icons-lsp
+          `((1 .  ,(concat (all-the-icons-faicon   "text-height")    " ")) ;; Text
+            (2 .  ,(concat (all-the-icons-faicon   "tags")           " ")) ;; Method
+            (3 .  ,(concat (all-the-icons-faicon   "tag" )           " ")) ;; Function
+            (4 .  ,(concat (all-the-icons-faicon   "tag" )           " ")) ;; Constructor
+            (5 .  ,(concat (all-the-icons-faicon   "cog" )           " ")) ;; Field
+            (6 .  ,(concat (all-the-icons-faicon   "cog" )           " ")) ;; Variable
+            (7 .  ,(concat (all-the-icons-faicon   "cube")           " ")) ;; Class
+            (8 .  ,(concat (all-the-icons-faicon   "cube")           " ")) ;; Interface
+            (9 .  ,(concat (all-the-icons-faicon   "cube")           " ")) ;; Module
+            (10 . ,(concat (all-the-icons-faicon   "cog" )           " ")) ;; Property
+            (11 . ,(concat (all-the-icons-material "settings_system_daydream") " ")) ;; Unit
+            (12 . ,(concat (all-the-icons-faicon   "cog" )           " ")) ;; Value
+            (13 . ,(concat (all-the-icons-material "storage")        " ")) ;; Enum
+            (14 . ,(concat (all-the-icons-material "closed_caption") " ")) ;; Keyword
+            (15 . ,(concat (all-the-icons-faicon   "bookmark")       " ")) ;; Snippet
+            (16 . ,(concat (all-the-icons-material "color_lens")     " ")) ;; Color
+            (17 . ,(concat (all-the-icons-faicon   "file-text-o")    " ")) ;; File
+            (18 . ,(concat (all-the-icons-material "refresh")        " ")) ;; Reference
+            (19 . ,(concat (all-the-icons-faicon   "folder-open")    " ")) ;; Folder
+            (20 . ,(concat (all-the-icons-material "closed_caption") " ")) ;; EnumMember
+            (21 . ,(concat (all-the-icons-faicon   "square")         " ")) ;; Constant
+            (22 . ,(concat (all-the-icons-faicon   "cube")           " ")) ;; Struct
+            (23 . ,(concat (all-the-icons-faicon   "calendar")       " ")) ;; Event
+            (24 . ,(concat (all-the-icons-faicon   "square-o")       " ")) ;; Operator
+            (25 . ,(concat (all-the-icons-faicon   "arrows")         " "))) ;; TypeParameter
+          ))
+#+END_SRC
 ** Autocompletion with company
 #+BEGIN_SRC emacs-lisp
   (use-package company
@@ -382,10 +472,15 @@ program, install it with =pip install proselint= for this to work.
     (global-company-mode)
     :bind
     (:map company-active-map
+	  ("C-n" . company-select-next)
+	  ("C-p" . company-select-previous)
 	  ("RET" . nil)
 	  ([return] . nil)
 	  ("TAB" . company-complete-selection)
-	  ([tab] . company-complete-selection))
+	  ([tab] . company-complete-selection)
+     :map company-search-map
+	  ("C-n" . company-select-next)
+	  ("C-p" . company-select-previous))
     :custom
     ;; do not downcase suggestions
     (company-dabbrev-downcase nil)
@@ -404,16 +499,33 @@ program, install it with =pip install proselint= for this to work.
       :config
       (add-to-list 'company-backends 'company-go))
 
-    (use-package company-anaconda
+    (use-package company-jedi
       :ensure t
       :config
-      (add-to-list 'company-backends 'company-anaconda)))
+      (setq jedi:complete-on-dot t)
+      (add-to-list 'company-backends 'company-jedi)
+      (add-hook 'python-mode-hook 'jedi-mode))
+)
 #+END_SRC
 * Languages and Major Modes
 ** Javascript
+Better Javascript mode
+#+BEGIN_SRC emacs-lisp
+  (use-package js2-mode
+    :ensure t
+    :mode "\\.js\\'")
+#+END_SRC
 Indent by 2 spaces.
 #+BEGIN_SRC emacs-lisp
   (setq-default js-indent-level 2)
+#+END_SRC
+** Typescript
+#+BEGIN_SRC emacs-lisp
+  (use-package typescript-mode
+    :ensure t
+    :init
+    (setq-default typescript-indent-level 2)
+  )
 #+END_SRC
 ** Web mode
 Web mode handels html/css/js.
@@ -454,7 +566,23 @@ Appearance improvements
 #+END_SRC
 ** Dockerfile
 #+BEGIN_SRC emacs-lisp
-  (use-package dockerfile-mode :mode "Dockerfile\\'")
+  (use-package dockerfile-mode
+    :ensure t
+    :mode "Dockerfile\\'")
+#+END_SRC
+** docker-compose
+#+BEGIN_SRC emacs-lisp
+  (use-package docker-compose-mode
+    :ensure t)
+#+END_SRC
+** Python
+#+BEGIN_SRC emacs-lisp
+
+#+END_SRC
+** YAML
+#+BEGIN_SRC emacs-lisp
+  (use-package yaml-mode
+    :ensure t)
 #+END_SRC
 * Hydras
 ** General Hydra
@@ -532,20 +660,18 @@ Appearance improvements
 
        Find File            Search/Tags          Buffers                Cache
   ------------------------------------------------------------------------------------------
-  _s-f_: file            _a_: ag                _i_: Ibuffer           _c_: cache clear
-   _ff_: file dwim       _g_: update gtags      _b_: switch to buffer  _x_: remove known project
-   _fd_: file curr dir   _o_: multi-occur     _s-k_: Kill all buffers  _X_: cleanup non-existing
-    _r_: recent file                                               ^^^^_z_: cache current
-    _s_: switch pj                                                 ^^^^_d_: discover projecs
+    _f_: file            _a_: ag                _i_: Ibuffer           _c_: cache clear
+    _r_: recent file     _g_: update gtags      _b_: switch to buffer  _x_: remove known project
+    _s_: switch pj       _o_: multi-occur     _s-k_: Kill all buffers  _X_: cleanup non-existing
+                                                                   ^^^^_z_: cache current
+                                                                   ^^^^_d_: discover projecs
 
   "
     ("a"   projectile-ag)
     ("b"   projectile-switch-to-buffer)
     ("c"   projectile-invalidate-cache)
     ("d"   projectile-discover-projects-in-search-path)
-    ("s-f" projectile-find-file)
-    ("ff"  projectile-find-file-dwim)
-    ("fd"  projectile-find-file-in-directory)
+    ("f"  projectile-find-file)
     ("g"   ggtags-update-tags)
     ("s-g" ggtags-update-tags)
     ("i"   projectile-ibuffer)
