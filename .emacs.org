@@ -211,13 +211,13 @@ toggle between that and the beginning of the line.
 	(indent-according-to-mode))
 
       (dolist (mode '(c-mode c++-mode css-mode objc-mode java-mode
-			     js2-mode json-mode
+			     js2-mode json-mode typescript-mode
 			     python-mode sh-mode web-mode))
 	(sp-local-pair mode "{" nil :post-handlers
 		       '((radian-enter-and-indent-sexp "RET")
 			 (radian-enter-and-indent-sexp "<return>"))))
 
-      (dolist (mode '(js2-mode json-mode python-mode web-mode))
+      (dolist (mode '(js2-mode json-mode typescript-mode python-mode web-mode))
 	(sp-local-pair mode "[" nil :post-handlers
 		       '((radian-enter-and-indent-sexp "RET")
 			 (radian-enter-and-indent-sexp "<return>"))))
@@ -384,7 +384,7 @@ If the icons are not working, execute =vscode-icon-convert-and-copy=
     (setq dired-sidebar-subtree-line-prefix "__")
     (setq dired-sidebar-theme 'vscode)
     (setq dired-sidebar-face 'dired-sidebar-face-sans)
-    (setq dired-sidebar-should-follow-file t)
+    (setq dired-sidebar-should-follow-file nil)
     (setq dired-sidebar-use-custom-font t))
 #+END_SRC
 * Checking and Completion
