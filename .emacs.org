@@ -82,6 +82,7 @@ variables. Creating it as a temporary file effectively disables it
   (use-package ace-window
     :bind
     ("M-o" . 'ace-window)
+    ([(meta shift o)] . 'ace-swap-window)
     :ensure t)
 #+END_SRC
 ** Do not ask before killing a buffer
@@ -104,10 +105,23 @@ variables. Creating it as a temporary file effectively disables it
 #+END_SRC
 ** Navigate previous next buffer
 #+BEGIN_SRC emacs-lisp
-  (global-set-key (kbd "C-S-p") 'previous-buffer)
-  (global-set-key (kbd "C-S-n") 'next-buffer)
+  (global-set-key (kbd "C-M-<left>") 'previous-buffer)
+  (global-set-key (kbd "C-M-<right>") 'next-buffer)
   (global-set-key (kbd "<mouse-8>") 'previous-buffer)
   (global-set-key (kbd "<mouse-9>") 'next-buffer)
+#+END_SRC
+** Dim inactive buffers for better visibility
+#+BEGIN_SRC emacs-lisp
+  (use-package auto-dim-other-buffers
+    :ensure t
+    :init
+    (custom-set-faces
+     '(auto-dim-other-buffers-face ((t (:background "#fffef0")))))
+    :config
+    (add-hook 'after-init-hook (lambda ()
+    (when (fboundp 'auto-dim-other-buffers-mode)
+      (auto-dim-other-buffers-mode t))))
+    )
 #+END_SRC
 * Minibuffer and completion
 ** Fast vertical completion with =ivy=
@@ -120,6 +134,7 @@ Enable fuzzy searching instead of the default regex.
     '((t . ivy--regex-fuzzy)))
     :bind
     ("C-S-b" . 'ivy-switch-buffer)
+    ("C-S-f" . 'projectile-find-file)
     :ensure t)
 #+END_SRC
 ** Smart command completion
@@ -190,6 +205,39 @@ toggle between that and the beginning of the line.
     :diminish smartparens-mode
     :config
     (add-hook 'prog-mode-hook 'smartparens-mode))
+#+END_SRC
+** Move line up and down
+#+BEGIN_SRC emacs-lisp
+  (defun move-line (n)
+    "Move the current line up or down by N lines."
+    (interactive "p")
+    (setq col (current-column))
+    (beginning-of-line) (setq start (point))
+    (end-of-line) (forward-char) (setq end (point))
+    (let ((line-text (delete-and-extract-region start end)))
+      (forward-line n)
+      (insert line-text)
+      ;; restore point to original column in moved line
+      (forward-line -1)
+      (forward-char col)))
+
+  (defun move-line-up (n)
+    "Move the current line up by N lines."
+    (interactive "p")
+    (move-line (if (null n) -1 (- n))))
+
+  (defun move-line-down (n)
+    "Move the current line down by N lines."
+    (interactive "p")
+    (move-line (if (null n) 1 n)))
+
+  (global-set-key (kbd "C-S-p") 'move-line-up)
+  (global-set-key (kbd "C-S-n") 'move-line-down)
+#+END_SRC
+** ag
+#+BEGIN_SRC emacs-lisp
+  (use-package ag
+    :ensure t)
 #+END_SRC
 * Project Management
 ** Projectile
@@ -415,6 +463,11 @@ Indent by 2 spaces.
 #+BEGIN_SRC emacs-lisp
   (setq-default js-indent-level 2)
 #+END_SRC
+** yaml
+#+BEGIN_SRC emacs-lisp
+  (use-package yaml-mode
+    :ensure t)
+#+END_SRC
 ** Web mode
 Web mode handels html/css/js.
 #+BEGIN_SRC emacs-lisp
@@ -454,7 +507,10 @@ Appearance improvements
 #+END_SRC
 ** Dockerfile
 #+BEGIN_SRC emacs-lisp
-  (use-package dockerfile-mode :mode "Dockerfile\\'")
+  (use-package dockerfile-mode
+    :ensure t
+    :mode "Dockerfile\\'"
+    )
 #+END_SRC
 * Hydras
 ** General Hydra
