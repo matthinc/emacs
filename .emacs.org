@@ -5,6 +5,7 @@
   - =fzf=
   - =pip install proselint=
   - =silversearcher-ag=
+  - Download and install all-the-icons fonts
 
 * Emacs Native Settings
 #+BEGIN_SRC emacs-lisp
@@ -19,7 +20,8 @@
 #+END_SRC
 ** Set default font to monaco
 #+BEGIN_SRC emacs-lisp
-  (set-default-font "Hack")
+  (add-to-list 'default-frame-alist '(font . "Hack 10"))
+  (set-face-attribute 'default t :font "Hack 10")
 #+END_SRC
 ** Scrolling speed
 #+BEGIN_SRC emacs-lisp
@@ -29,6 +31,18 @@
 ** Disable toolbar
 #+BEGIN_SRC emacs-lisp
   (tool-bar-mode -1)
+#+END_SRC
+** Disable menubar
+#+BEGIN_SRC emacs-lisp
+  (menu-bar-mode -1)
+#+END_SRC
+** Disable scrollbars
+#+BEGIN_SRC emacs-lisp
+  (scroll-bar-mode -1)
+#+END_SRC
+** Open emacs maximized
+#+BEGIN_SRC emacs-lisp
+  (add-to-list 'default-frame-alist '(fullscreen . maximized))
 #+END_SRC
 ** Make =yes-or-no= Promts shorter
 #+BEGIN_SRC emacs-lisp
@@ -46,11 +60,8 @@
 #+END_SRC
 ** Fix emacs TLS Issue
 #+BEGIN_SRC emacs-lisp :tangle (when (version< emacs-version "26.3") "yes")
-  (defvar gnutls-algorithm-priority "NORMAL:-VERS-TLS1.3")
+  (defvar gnutls-algorithm-priority "NORMAL:-VERS-TLS1.2")
 #+END_SRC
-
-#+RESULTS:
-: gnutls-algorithm-priority
 
 ** mepla package archive
 #+BEGIN_SRC emacs-lisp
@@ -82,12 +93,34 @@ variables. Creating it as a temporary file effectively disables it
     (define-key dired-mode-map "b" 'dired-up-directory)
     ;; open files in same window when clicking
     (define-key dired-mode-map [mouse-2] 'dired-mouse-find-file)
+    :bind
+    ("C-S-d" . 'dired-jump)
     )
+#+END_SRC
+** Icons for dired
+#+BEGIN_SRC emacs-lisp
+  (use-package all-the-icons-dired
+    :ensure t
+    :hook (dired-mode . all-the-icons-dired-mode))
 #+END_SRC
 ** Disable tabs
 #+BEGIN_SRC emacs-lisp
   (setq-default indent-tabs-mode nil)
 #+END_SRC
+* Theming
+#+BEGIN_SRC emacs-lisp
+  (use-package color-theme-sanityinc-tomorrow
+    :ensure t
+    :init
+    (custom-set-variables
+     '(custom-safe-themes
+       (quote
+        ("bb08c73af94ee74453c90422485b29e5643b73b05e8de029a6909af6a3fb3f58" default))))
+    (load-theme 'sanityinc-tomorrow-day))
+#+END_SRC
+
+#+RESULTS:
+
 * Window Management
 ** Easy window Switching with =ace-window=
 #+BEGIN_SRC emacs-lisp
@@ -123,7 +156,7 @@ variables. Creating it as a temporary file effectively disables it
   (global-set-key (kbd "<mouse-9>") 'next-buffer)
 #+END_SRC
 ** Dim inactive buffers for better visibility
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
   (use-package auto-dim-other-buffers
     :ensure t
     :init
@@ -216,34 +249,35 @@ toggle between that and the beginning of the line.
       :ensure t
       :diminish smartparens-mode
       :config
+      (show-smartparens-global-mode)
       (add-hook 'prog-mode-hook 'smartparens-mode)
       ;; https://github.com/Fuco1/smartparens/issues/80#issuecomment-393254091
       (defun radian-enter-and-indent-sexp (&rest _ignored)
-	"Insert an extra newline after point, and reindent."
-	(newline)
-	(indent-according-to-mode)
-	(forward-line -1)
-	(indent-according-to-mode))
+        "Insert an extra newline after point, and reindent."
+        (newline)
+        (indent-according-to-mode)
+        (forward-line -1)
+        (indent-according-to-mode))
 
       (dolist (mode '(c-mode c++-mode css-mode objc-mode java-mode
-			     js2-mode json-mode typescript-mode
-			     python-mode sh-mode web-mode))
-	(sp-local-pair mode "{" nil :post-handlers
-		       '((radian-enter-and-indent-sexp "RET")
-			 (radian-enter-and-indent-sexp "<return>"))))
+                             js2-mode json-mode typescript-mode
+                             python-mode sh-mode web-mode))
+        (sp-local-pair mode "{" nil :post-handlers
+                       '((radian-enter-and-indent-sexp "RET")
+                         (radian-enter-and-indent-sexp "<return>"))))
 
       (dolist (mode '(js2-mode json-mode typescript-mode python-mode web-mode))
-	(sp-local-pair mode "[" nil :post-handlers
-		       '((radian-enter-and-indent-sexp "RET")
-			 (radian-enter-and-indent-sexp "<return>"))))
+        (sp-local-pair mode "[" nil :post-handlers
+                       '((radian-enter-and-indent-sexp "RET")
+                         (radian-enter-and-indent-sexp "<return>"))))
 
       (dolist (mode '(python-mode))
-	(sp-local-pair mode "(" nil :post-handlers
-		       '((radian-enter-and-indent-sexp "RET")
-			 (radian-enter-and-indent-sexp "<return>")))
-	(sp-local-pair mode "\"\"\"" "\"\"\"" :post-handlers
-		       '((radian-enter-and-indent-sexp "RET")
-			 (radian-enter-and-indent-sexp "<return>"))))
+        (sp-local-pair mode "(" nil :post-handlers
+                       '((radian-enter-and-indent-sexp "RET")
+                         (radian-enter-and-indent-sexp "<return>")))
+        (sp-local-pair mode "\"\"\"" "\"\"\"" :post-handlers
+                       '((radian-enter-and-indent-sexp "RET")
+                         (radian-enter-and-indent-sexp "<return>"))))
   )
 #+END_SRC
 ** Move line up and down
@@ -401,16 +435,9 @@ Base installation
   :ensure t)
 #+END_SRC
 ** Sidebar dired
-If the icons are not working, execute =vscode-icon-convert-and-copy=
-
 #+BEGIN_SRC emacs-lisp
-  (use-package vscode-icon
-    :ensure t
-    :config
-    (setq vscode-icon-size 16))
-
   (defface dired-sidebar-face-sans
-    '((t (:font "Noto Sans")))
+    '((t (:font "Noto Sans 10")))
     "Face for dired sidebar")
 
   (use-package dired-sidebar
@@ -429,11 +456,12 @@ If the icons are not working, execute =vscode-icon-convert-and-copy=
     (push 'toggle-window-split dired-sidebar-toggle-hidden-commands)
     (push 'rotate-windows dired-sidebar-toggle-hidden-commands)
 
-    (setq dired-sidebar-subtree-line-prefix "__")
-    (setq dired-sidebar-theme 'vscode)
+    (setq dired-sidebar-subtree-line-prefix "  ")
+    (setq dired-sidebar-theme 'ascii)
     (setq dired-sidebar-face 'dired-sidebar-face-sans)
-    (setq dired-sidebar-should-follow-file nil)
-    (setq dired-sidebar-use-custom-font t))
+    ;; (setq dired-sidebar-should-follow-file t)
+    (setq dired-sidebar-use-custom-font t)
+    )
 #+END_SRC
 * Checking and Completion
 ** Flycheck
@@ -631,6 +659,11 @@ Web mode handels html/css/js.
     :mode ("\\.html\\'")
     :config
     (setq web-mode-markup-indent-offset 2))
+#+END_SRC
+** Pug mode
+#+BEGIN_SRC emacs-lisp
+  (use-package pug-mode
+    :ensure t)
 #+END_SRC
 ** Markdown
 #+BEGIN_SRC emacs-lisp
