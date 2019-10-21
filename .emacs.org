@@ -107,6 +107,10 @@ variables. Creating it as a temporary file effectively disables it
 #+BEGIN_SRC emacs-lisp
   (setq-default indent-tabs-mode nil)
 #+END_SRC
+** Open recent files shortcut
+#+BEGIN_SRC emacs-lisp
+  (global-set-key (kbd "C-x C-r") 'counsel-recentf)
+#+END_SRC
 * Theming
 #+BEGIN_SRC emacs-lisp
   (use-package color-theme-sanityinc-tomorrow
@@ -125,6 +129,13 @@ variables. Creating it as a temporary file effectively disables it
 ** Easy window Switching with =ace-window=
 #+BEGIN_SRC emacs-lisp
   (use-package ace-window
+    :config
+    (set-face-attribute
+     'aw-leading-char-face nil
+     :foreground "red"
+     :weight 'bold
+     :height 5.0)
+    (setq-default aw-swap-invert t)
     :bind
     ("M-o" . 'ace-window)
     ([(meta shift o)] . 'ace-swap-window)
