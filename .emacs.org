@@ -363,6 +363,17 @@ and =C-c p s s= for search via =ag=.
     :config
     (add-hook 'after-init-hook 'counsel-projectile-mode))
 #+END_SRC
+Set the name in the titlebar to the current project
+#+BEGIN_SRC emacs-lisp
+  (setq frame-title-format
+        '(""
+          (:eval
+           (let ((project-name (projectile-project-name)))
+             (unless (string= "-" project-name)
+               (format "[%s]: " project-name))))
+          "%b"
+          ))
+#+END_SRC
 ** Fuzzy search
 # =fzf= is a fuzzy file finder which is very quick.
 # #+BEGIN_SRC emacs-lisp
