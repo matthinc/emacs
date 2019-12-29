@@ -229,6 +229,16 @@ Comment or uncomment the current line or region
 	  (comment-or-uncomment-region beg end)))
   (global-set-key (kbd "M-;") 'comment-or-uncomment-region-or-line)
 #+END_SRC
+** Align columns
+#+BEGIN_SRC emacs-lisp
+  ;; http://pragmaticemacs.com/emacs/aligning-text/
+
+  (defun sh/align-whitespace (start end)
+    "Align text seperated by at least two whitespaces."
+    (interactive "r")
+    (align-regexp start end
+                  "\\(\\s-\\s-+\\)" -1 4 t))
+#+END_SRC
 ** Multiple cursors
 #+BEGIN_SRC emacs-lisp
   (use-package multiple-cursors
