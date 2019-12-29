@@ -85,6 +85,10 @@ variables. Creating it as a temporary file effectively disables it
 #+BEGIN_SRC emacs-lisp
   (setq custom-file (make-temp-file "emacs-custom"))
 #+END_SRC
+** Dired: Sort directories first
+   #+BEGIN_SRC emacs-lisp
+     (setq dired-listing-switches "-aBhl  --group-directories-first")
+   #+END_SRC
 ** Better dired shortcuts
 #+BEGIN_SRC emacs-lisp
   (use-package dired
