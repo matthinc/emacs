@@ -738,6 +738,24 @@ Appearance improvements
   (use-package yaml-mode
     :ensure t)
 #+END_SRC
+** Jenkinsfile / Groovy
+   #+BEGIN_SRC emacs-lisp
+     (use-package groovy-mode
+       :ensure t
+       :mode "Jenkinsfile\\'")
+   #+END_SRC
+** Rust
+#+BEGIN_SRC emacs-lisp
+  (use-package rust-mode
+    :ensure t
+    :hook (setq indent-tabs-mode nil)
+    )
+
+  (use-package flycheck-rust
+    :ensure t
+    :init (with-eval-after-load 'rust-mode
+    (add-hook 'flycheck-mode-hook #'flycheck-rust-setup)))
+#+END_SRC
 * Hydras
 ** General Hydra
 #+BEGIN_SRC emacs-lisp
