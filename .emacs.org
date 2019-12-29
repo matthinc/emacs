@@ -1,5 +1,6 @@
 #+TITLE: Emacs Config
 #+PROPERTY: header-args:emacs-lisp    :tangle "~/.emacs"
+#+TODO: | UNUSED
 
 * Requirements
   - =fzf=
@@ -205,7 +206,7 @@ Enable fuzzy searching instead of the default regex.
 smart =M-x= suggests =M-x= commands based on recency and frequency. I
 don't tend to use it directly but =counsel= uses it to order
 suggestions.
-#+BEGIN_SRC 
+#+BEGIN_SRC emacs-lisp
   (use-package smex
     :ensure t)
 #+END_SRC
@@ -274,40 +275,40 @@ toggle between that and the beginning of the line.
 #+END_SRC
 ** Parentheses balancing
 #+BEGIN_SRC emacs-lisp
-    (use-package smartparens
-      :ensure t
-      :diminish smartparens-mode
-      :config
-      (show-smartparens-global-mode)
-      (add-hook 'prog-mode-hook 'smartparens-mode)
-      ;; https://github.com/Fuco1/smartparens/issues/80#issuecomment-393254091
-      (defun radian-enter-and-indent-sexp (&rest _ignored)
-        "Insert an extra newline after point, and reindent."
-        (newline)
-        (indent-according-to-mode)
-        (forward-line -1)
-        (indent-according-to-mode))
+  (use-package smartparens
+    :ensure t
+    :diminish smartparens-mode
+    :config
+    (show-smartparens-global-mode)
+    (add-hook 'prog-mode-hook 'smartparens-mode)
+    ;; https://github.com/Fuco1/smartparens/issues/80#issuecomment-393254091
+    (defun radian-enter-and-indent-sexp (&rest _ignored)
+      "Insert an extra newline after point, and reindent."
+      (newline)
+      (indent-according-to-mode)
+      (forward-line -1)
+      (indent-according-to-mode))
 
-      (dolist (mode '(c-mode c++-mode css-mode objc-mode java-mode
-                             js2-mode json-mode typescript-mode
-                             python-mode sh-mode web-mode))
-        (sp-local-pair mode "{" nil :post-handlers
-                       '((radian-enter-and-indent-sexp "RET")
-                         (radian-enter-and-indent-sexp "<return>"))))
+    (dolist (mode '(c-mode c++-mode css-mode objc-mode java-mode
+                           js2-mode json-mode typescript-mode
+                           python-mode sh-mode web-mode rust-mode))
+      (sp-local-pair mode "{" nil :post-handlers
+                     '((radian-enter-and-indent-sexp "RET")
+                       (radian-enter-and-indent-sexp "<return>"))))
 
-      (dolist (mode '(js2-mode json-mode typescript-mode python-mode web-mode))
-        (sp-local-pair mode "[" nil :post-handlers
-                       '((radian-enter-and-indent-sexp "RET")
-                         (radian-enter-and-indent-sexp "<return>"))))
+    (dolist (mode '(js2-mode json-mode typescript-mode python-mode web-mode))
+      (sp-local-pair mode "[" nil :post-handlers
+                     '((radian-enter-and-indent-sexp "RET")
+                       (radian-enter-and-indent-sexp "<return>"))))
 
-      (dolist (mode '(python-mode))
-        (sp-local-pair mode "(" nil :post-handlers
-                       '((radian-enter-and-indent-sexp "RET")
-                         (radian-enter-and-indent-sexp "<return>")))
-        (sp-local-pair mode "\"\"\"" "\"\"\"" :post-handlers
-                       '((radian-enter-and-indent-sexp "RET")
-                         (radian-enter-and-indent-sexp "<return>"))))
-  )
+    (dolist (mode '(python-mode))
+      (sp-local-pair mode "(" nil :post-handlers
+                     '((radian-enter-and-indent-sexp "RET")
+                       (radian-enter-and-indent-sexp "<return>")))
+      (sp-local-pair mode "\"\"\"" "\"\"\"" :post-handlers
+                     '((radian-enter-and-indent-sexp "RET")
+                       (radian-enter-and-indent-sexp "<return>"))))
+    )
 #+END_SRC
 ** Move line up and down
 #+BEGIN_SRC emacs-lisp
