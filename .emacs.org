@@ -612,8 +612,6 @@ program, install it with =pip install proselint= for this to work.
   (use-package company
     :ensure t
     :diminish
-    :init
-    (global-company-mode)
     :bind
     (:map company-active-map
 	  ("C-n" . company-select-next)
@@ -626,6 +624,7 @@ program, install it with =pip install proselint= for this to work.
 	  ("C-n" . company-select-next)
 	  ("C-p" . company-select-previous))
     :custom
+    (global-company-mode t)
     ;; do not downcase suggestions
     (company-dabbrev-downcase nil)
     (company-idle-delay .2)
