@@ -144,7 +144,8 @@ variables. Creating it as a temporary file effectively disables it
      :foreground "red"
      :weight 'bold
      :height 5.0)
-    (setq-default aw-swap-invert t)
+    ;; make cursor stay at the same position
+    ;; (setq-default aw-swap-invert t)
     :bind
     ("M-o" . 'ace-window)
     ([(meta shift o)] . 'ace-swap-window)
