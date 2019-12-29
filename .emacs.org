@@ -225,6 +225,10 @@ commands.
     (setq ivy-initial-inputs-alist nil)
     :bind (("M-x" . counsel-M-x)))
 #+END_SRC
+** Make =ivy= ignore buffers without files
+#+BEGIN_SRC emacs-lisp
+  (setq ivy-ignore-buffers '("\\` " "\\`\\*"))
+#+END_SRC
 * Editing
 ** Commenting uncommenting
 Comment or uncomment the current line or region
