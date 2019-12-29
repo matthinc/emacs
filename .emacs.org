@@ -898,6 +898,19 @@ Appearance improvements
 
   (define-key dired-mode-map "." 'hydra-dired/body)
 #+END_SRC
+* org-mode
+** Hugo
+#+BEGIN_SRC emacs-lisp
+  (use-package ox-hugo
+    :ensure t
+    :after ox)
+#+END_SRC
+** org-mode comments everywhere
+#+BEGIN_SRC emacs-lisp
+  (use-package poporg
+    :ensure t
+    :bind (("C-x ;" . poporg-dwim)))
+#+END_SRC
 * Footer
 #+BEGIN_SRC emacs-lisp
 
