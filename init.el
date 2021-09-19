@@ -41,6 +41,7 @@
 
 (global-set-key "\C-c\ \C-a" 'company-complete)
 
+
 ;; ########## ag ##########
 (use-package ag :ensure t)
 
@@ -52,6 +53,9 @@
 (use-package smart-mode-line :ensure t)
 (setq sml/no-confirm-load-theme t)
 (smart-mode-line-enable t)
+
+;; ########## auctex ##########
+(package-install 'auctex)
 
 ;; ########## magit ##########
 (use-package magit :ensure t)
@@ -107,6 +111,10 @@
 (package-install 'aggressive-indent)
 (global-aggressive-indent-mode 1)
 
+;; ########## popup-killring ##########
+(package-install 'popup-kill-ring)
+(global-set-key "\M-y" 'popup-kill-ring)
+
 ;; ########## highlight-indentation ##########
 (package-install 'highlight-indentation)
 (add-hook 'prog-mode-hook #'highlight-indentation-mode)
@@ -117,10 +125,13 @@
 (package-install 'markdown-mode)
 (package-install 'gitignore-mode)
 (package-install 'web-mode)
+(package-install 'cc-mode)
 
 ;; ########## UI Config ##########
 (menu-bar-mode -1)
 (tool-bar-mode -1)
+(scroll-bar-mode -1)
+
 (when window-system
   (set-frame-size (selected-frame) 200 50))
 
@@ -128,9 +139,9 @@
 (defun mterm ()
   (interactive)
   (select-window (split-window-below))
-  (ansi-term (executable-find "bash"))
-)
-(global-set-key "\C-c\ a\ t" 'mterm)
+  (ansi-term "/bin/bash"))
+
+(global-set-key "\C-t" 'mterm)
 
 ;; ########## Testfile ##########
 (defun testfile ()
@@ -157,6 +168,12 @@
 (setq confirm-kill-emacs nil)
 (setq confirm-kill-processes nil)
 
+;; ########## yes or no ##########
+(fset 'yes-or-no-p 'y-or-n-p)
+
+;; ########## kill current buffer ##########
+(global-set-key "\C-x\ \C-k" 'kill-current-buffer)
+
 ;; ########## cursor ##########
 (setq-default cursor-type 'bar)
 
@@ -165,7 +182,8 @@
 
 ;; ########## colors ##########
 (set-face-attribute 'region nil :background "#b5d5ff")
-(set-face-background 'mode-line "#eee")
+(set-face-background 'mode-line "#003")
+(set-face-foreground 'mode-line "#fff")
 
 ;; ########## variables ##########
 
@@ -174,12 +192,46 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(ansi-color-faces-vector
+   [default default default italic underline success warning error])
+ '(ansi-color-names-vector
+   ["#2d3743" "#ff4242" "#74af68" "#dbdb95" "#34cae2" "#008b8b" "#00ede1" "#e1e1e0"])
+ '(company-quickhelp-color-background "#e8e8e8")
+ '(company-quickhelp-color-foreground "#444444")
+ '(custom-enabled-themes (quote (wheatgrass)))
  '(custom-safe-themes
    (quote
-    ("a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" "76b4632612953d1a8976d983c4fdf5c3af92d216e2f87ce2b0726a1f37606158" default)))
+    ("c2e1201bb538b68c0c1fdcf31771de3360263bd0e497d9ca8b7a32d5019f2fae" "a27c00821ccfd5a78b01e4f35dc056706dd9ede09a8b90c6955ae6a390eb1c1e" "76b4632612953d1a8976d983c4fdf5c3af92d216e2f87ce2b0726a1f37606158" default)))
+ '(fci-rule-color "#eeeeee")
+ '(nrepl-message-colors
+   (quote
+    ("#8f4e8b" "#8f684e" "#c3a043" "#397460" "#54ab8e" "#20a6ab" "#3573b1" "#DC8CC3")))
  '(package-selected-packages
    (quote
-    (centaur-tabs expand-region smart-mode-line swiper smartparens web-mode company company-mode all-the-icons-ivy-rich counsel ivy-rich highlight-indentation aggressive-indent org-caldav go-mode haskell-mode lorem-ipsum gitignore-mode hl-todo rainbow-delimiters markdown-mode avy el-search flycheck ivy use-package))))
+    (doneburn-theme cc-mode popup-kill-ring popup-killring load-theme-buffer-local pdf-tools auctex centaur-tabs expand-region smart-mode-line swiper smartparens web-mode company company-mode all-the-icons-ivy-rich counsel ivy-rich highlight-indentation aggressive-indent org-caldav go-mode haskell-mode lorem-ipsum gitignore-mode hl-todo rainbow-delimiters markdown-mode avy el-search flycheck ivy use-package)))
+ '(pdf-view-midnight-colors (quote ("#444444" . "#eeeeee")))
+ '(vc-annotate-background "#f9f9f9")
+ '(vc-annotate-color-map
+   (quote
+    ((20 . "#844880")
+     (40 . "#8f4e8b")
+     (60 . "#8f684e")
+     (80 . "#cfb56e")
+     (100 . "#c3a043")
+     (120 . "#c3a043")
+     (140 . "#2a5547")
+     (160 . "#397460")
+     (180 . "#3b7863")
+     (200 . "#438972")
+     (220 . "#4c9a80")
+     (240 . "#54ab8e")
+     (260 . "#20a6ab")
+     (280 . "#234d76")
+     (300 . "#295989")
+     (320 . "#2e659c")
+     (340 . "#3573b1")
+     (360 . "#DC8CC3"))))
+ '(vc-annotate-very-old-color "#DC8CC3"))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
