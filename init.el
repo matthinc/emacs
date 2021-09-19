@@ -137,14 +137,18 @@
 
 ;; ########## Terminal ##########
 (defun mterm ()
+  "Create new 'ansi-term' if not exists, else switche to this buffer."
   (interactive)
   (select-window (split-window-below))
-  (ansi-term "/bin/bash"))
-
+  (if (eq nil (get-buffer "*ansi-term*"))
+      (ansi-term "/bin/bash")
+    (switch-to-buffer "*ansi-term*")))
+  
 (global-set-key "\C-t" 'mterm)
 
 ;; ########## Testfile ##########
 (defun testfile ()
+  "Create empty buffer in /tmp."
   (interactive)
   (find-file "/tmp/emacs_testfile.txt")
   (save-buffer))
@@ -208,7 +212,7 @@
     ("#8f4e8b" "#8f684e" "#c3a043" "#397460" "#54ab8e" "#20a6ab" "#3573b1" "#DC8CC3")))
  '(package-selected-packages
    (quote
-    (doneburn-theme cc-mode popup-kill-ring popup-killring load-theme-buffer-local pdf-tools auctex centaur-tabs expand-region smart-mode-line swiper smartparens web-mode company company-mode all-the-icons-ivy-rich counsel ivy-rich highlight-indentation aggressive-indent org-caldav go-mode haskell-mode lorem-ipsum gitignore-mode hl-todo rainbow-delimiters markdown-mode avy el-search flycheck ivy use-package)))
+    (ccls lsp-mode doneburn-theme cc-mode popup-kill-ring popup-killring load-theme-buffer-local pdf-tools auctex centaur-tabs expand-region smart-mode-line swiper smartparens web-mode company company-mode all-the-icons-ivy-rich counsel ivy-rich highlight-indentation aggressive-indent org-caldav go-mode haskell-mode lorem-ipsum gitignore-mode hl-todo rainbow-delimiters markdown-mode avy el-search flycheck ivy use-package)))
  '(pdf-view-midnight-colors (quote ("#444444" . "#eeeeee")))
  '(vc-annotate-background "#f9f9f9")
  '(vc-annotate-color-map
